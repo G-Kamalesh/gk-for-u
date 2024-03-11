@@ -13,7 +13,7 @@ YouTube Data-Harvesting and Ware-Housing Using SQL, Data-Management Using Mongo 
 * MySQL.
 * MongoDB.
   
-* ### 2. Requirement Libraries to Install
+### 2. Requirement Libraries to Install
 * pip install google-api-python-client, pymongo, mysql-connector-python, pandas, streamlit.
 
 ### 3. Import Libraries
@@ -64,14 +64,23 @@ c) **Visualization**
 
 ## User Guide
 **1.Paste your API_KEY(generate from google developer console) and the Youtube Channel_id on the sidebar input box.
+
 **2.In the center you have a selectbox containing following functions.
+
     **1.**Channel Detail** - select this option to fetch the general details(channel name,channel id,channel subscriber count,total videos uploaded,playlist id) of the channel.
+    
     **2.**Video Details** - select this option to fetch the all the video details(video name, video description, video likes,video comment,video views,video duration).
+    
     **3.**Comment Details** - select this option to fetch all the comment details(comment, comment id, comment author, comment likes) of all the videos in the channel.
+    
     **4.**Migrate Data to MongoDB** - select this option to store the data fetched from Youtube to Mongo database.
+    
     **5.**Migrate Data From MongoDB to MySql** - select this option to fetch the entire data(all collection\document) in Mongo Database to store it in MySql Database.
+    
     **6.**List of Channels Stored in Mongo** - select this option to view the name of channels that is stored in Mongo database.
+    
     **7.**Store Data in Mysql Using Channel Name** - select this option to fetch data from Mongo database using the channel name and store it in MySql database.
+    
     **8.**Queries** - Upon selecting this option it will show a new drop down box which has multiple question. select those question and the data will be fetched accordingly from the 
                       MySql database.
 
