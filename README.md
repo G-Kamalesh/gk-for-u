@@ -27,10 +27,10 @@ YouTube Data-Harvesting and Ware-Housing Using SQL, Data-Management Using Mongo 
 **SQL libraries**
 * import mysql.connector
 
-**pandas, numpy**
+**pandas**
 * import pandas as pd
 
-**Dashboard libraries**
+**Web-App libraries**
 * import streamlit as st
 
 ### 4. E T L Process
@@ -62,7 +62,7 @@ c) **Visualization**
 * Finally, select a question from the drop down menu to analyse the data and show the output in Dataframe Table.
 
 
-## User Guide
+## User Guide for Web-App
 **1.Paste your API_KEY(generate from google developer console) and the Youtube Channel_id on the sidebar input box.
 
 **2.In the center you have a selectbox containing following functions.
