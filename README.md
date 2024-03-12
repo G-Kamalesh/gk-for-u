@@ -29,11 +29,12 @@ YouTube Data-Harvesting and Ware-Housing Using SQL, Data-Management Using Mongo 
 
 **Text Analysis**
 *import re(Regular expression)
+
 **pandas**
-* import pandas as pd
+*import pandas as pd
 
 **Web-App libraries**
-* import streamlit as st
+*import streamlit as st
 
 ### 4. E T L Process
 
