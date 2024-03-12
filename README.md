@@ -27,6 +27,8 @@ YouTube Data-Harvesting and Ware-Housing Using SQL, Data-Management Using Mongo 
 **SQL libraries**
 * import mysql.connector
 
+**Text Analysis**
+*import re(Regular expression)
 **pandas**
 * import pandas as pd
 
