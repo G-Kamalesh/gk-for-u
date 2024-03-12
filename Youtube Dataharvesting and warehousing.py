@@ -2,6 +2,7 @@ import googleapiclient.discovery
 import streamlit as st
 import pandas as pd
 import mysql.connector
+import re
 from pymongo import MongoClient
 
 # to connect with youtube api server
@@ -136,17 +137,13 @@ def mongoinsertion(m,collection):
        return "Successfully uploaded in Mongodb"
     except:
         return "Sorry for the delay: Mongo Insertion Problem"   
-
-
-        # Log the exception or print it for debugging
-        st.error(f"An error occurred: {str(e)}")
-        return "Failed to upload data to MySql"
 #sql channel table creation and data insertion
 def sql_channel_upload(cursor,sqldb,d):
     #channel details
     exception=[]
     success=[]
-    #conditions to create tables    
+    
+    #to create tables for channel   
     df = pd.DataFrame(d)
     query= """create table if not exists channel_details( 
                                                 channel_id varchar(60) primary key,
@@ -159,8 +156,8 @@ def sql_channel_upload(cursor,sqldb,d):
                                                 
                                                 ) """
     cursor.execute(query)
+    
     #sql channel data insertion
-
     for i,row in df.iterrows(): 
             try:
                     insert = """insert into channel_details(  
@@ -204,8 +201,18 @@ def sql_video_upload(cursor,sqldb,d):
         v= pd.DataFrame(d[i])
         u.append(v)
     s= pd.concat(u, ignore_index= True)
+    
+     #video duration conversion
+    hours = minutes = seconds = 0
+    for i, row in s.iterrows():
+        match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', row['video_duration'])
+        if match:
+            hours = int(match.group(1) or 0)
+            minutes = int(match.group(2) or 0)
+            seconds = int(match.group(3) or 0)
+            s.at[i, 'video_duration'] = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+    
     #sql video table creation 
-
     query= """create table if not exists video_details( 
                                     channel_id varchar(60), 
                                     channel_name varchar(100),
@@ -270,7 +277,6 @@ def sql_comments_upload(cursor,sqldb,d):
     #comment details
     success=[]
     exception=[]
-
     try:
         z=[]
         for i in range(len(d)):
@@ -526,6 +532,12 @@ elif operation0 == "Queries":
         y = m.fetchall()
         df= pd.DataFrame(y,columns=["Chanel Name","Video Name","Total Comment"])
         st.dataframe(df)
+     elif operation1 == "What is the average duration of all videos in each channel and what are their corresponding channel names?":
+        query = "select channel_name, SEC_TO_TIME(AVG(TIME_TO_SEC(video_duration))) from video_details11 group by channel_name"
+        m.execute(query)
+        y = m.fetchall()
+        df = pd.DataFrame(y,columns=["Channel Name","Avg Watchtime"])
+        st.write(df)
 
     
     
