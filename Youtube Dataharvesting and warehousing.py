@@ -474,7 +474,8 @@ elif operation0 == "Queries":
                                          "What is the total number of likes for each video, and what are their corresponding video names?",
                                          "What is the total number of views for each channel, and what are their corresponding channel names?",
                                          "What are the names of all the channels that have published videos in the year 2022?",
-                                         "Which videos have the highest number of comments, and what are their corresponding channel names?"
+                                         "Which videos have the highest number of comments, and what are their corresponding channel names?",
+                                         "What is the average duration of all videos in each channel and what are their corresponding channel names?"
                                          ]
                                          )
      m,t = sql_connection()
