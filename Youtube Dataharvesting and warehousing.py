@@ -13,15 +13,6 @@ def Youtube_connect(keys):
                                                 developerKey= key 
                                                 )
     return youtube
-#extracting data from youtube    
-def Youtube(youtube):
-    Channel = channel_info(channel_id,youtube)
-    Id = Channel['Playlist_id']
-    Video_id = video_Id(Id,youtube)
-    Video_info = video_info(Video_id,youtube,channel_id)
-    comments = Comment_Info(Video_id,youtube,channel_id)
-    details ={"Channel_Details":Channel,"Video_Details":Video_info,"Comment_Details":comments}
-    return details
 #to get channel info
 def channel_info(channel_id,youtube):
     request = youtube.channels().list(part="snippet,contentDetails,statistics",
@@ -40,9 +31,15 @@ def channel_info(channel_id,youtube):
     
     return Channel_information
 #to get video id's of entire videos in channel
-def video_Id(id,youtube):
+def video_Id(channel_id,youtube):
     pageToken1= None
     data=[]
+    request = youtube.channels().list(part="snippet,contentDetails,statistics",
+                                      id=channel_id
+                                      )
+    response = request.execute()
+    id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+
     while True:
         request = youtube.playlistItems().list(part="snippet,contentDetails",
                                            playlistId=id,
@@ -131,7 +128,11 @@ def mongo_connection():
      collection = db['Channels_Doc']
      return collection
 # mongo db data insertion
-def mongoinsertion(m,collection):
+def mongoinsertion(m):
+    try:
+         collection = mongo_connection()
+    except:
+         return "Sorry Server Error"
     try:
        collection.insert_one(m) 
        return "Successfully uploaded in Mongodb"
@@ -142,8 +143,7 @@ def sql_channel_upload(cursor,sqldb,d):
     #channel details
     exception=[]
     success=[]
-    
-    #to create tables for channel   
+    #conditions to create tables    
     df = pd.DataFrame(d)
     query= """create table if not exists channel_details( 
                                                 channel_id varchar(60) primary key,
@@ -156,8 +156,8 @@ def sql_channel_upload(cursor,sqldb,d):
                                                 
                                                 ) """
     cursor.execute(query)
-    
     #sql channel data insertion
+
     for i,row in df.iterrows(): 
             try:
                     insert = """insert into channel_details(  
@@ -201,8 +201,7 @@ def sql_video_upload(cursor,sqldb,d):
         v= pd.DataFrame(d[i])
         u.append(v)
     s= pd.concat(u, ignore_index= True)
-    
-     #video duration conversion
+    #video duration conversion
     hours = minutes = seconds = 0
     for i, row in s.iterrows():
         match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', row['video_duration'])
@@ -211,8 +210,8 @@ def sql_video_upload(cursor,sqldb,d):
             minutes = int(match.group(2) or 0)
             seconds = int(match.group(3) or 0)
             s.at[i, 'video_duration'] = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
-    
     #sql video table creation 
+
     query= """create table if not exists video_details( 
                                     channel_id varchar(60), 
                                     channel_name varchar(100),
@@ -277,6 +276,7 @@ def sql_comments_upload(cursor,sqldb,d):
     #comment details
     success=[]
     exception=[]
+
     try:
         z=[]
         for i in range(len(d)):
@@ -384,6 +384,14 @@ if keys and channel_id:
    
 #streamlit main page  
 st.write("Let's get started")
+
+if 'Channel' not in st.session_state:
+     st.session_state['Channel'] = ""
+if 'Video_info' not in st.session_state:
+     st.session_state['Video_info'] = ""
+if 'comments' not in st.session_state:
+     st.session_state['comments'] = ""
+
 operation0 = st.selectbox("Select a Operation",["None",
                                                 "Channel Details",
                                                 "Video Details",
@@ -393,13 +401,23 @@ operation0 = st.selectbox("Select a Operation",["None",
                                                 "List of Channels Stored in Mongo", 
                                                 "Store Data in Mysql Using Channel Name",
                                                 "Queries"])
-
 if operation0 == "Migrate Data to MongoDB":
-     s= mongo_connection()
-     t = Youtube_connect(keys)
-     m= Youtube(t)
-     y= mongoinsertion(m,s)
-     st.success(y)
+    if st.session_state['Channel'] and st.session_state['Video_info'] and st.session_state['comments']:
+        details ={"Channel_Details":st.session_state['Channel'],"Video_Details":st.session_state['Video_info'],"Comment_Details":st.session_state['comments']}
+        y= mongoinsertion(details)
+        st.success(y)
+    else:
+        youtube = Youtube_connect(keys)
+        Channel = channel_info(channel_id,youtube)
+        st.session_state['Channel'] = Channel
+        Video_id = video_Id(channel_id,youtube)
+        Video_info = video_info(Video_id,youtube,channel_id)
+        st.session_state['Video_info'] = Video_info
+        comments = Comment_Info(Video_id,youtube,channel_id)
+        st.session_state['comments'] = comments
+        details ={"Channel_Details":Channel,"Video_Details":Video_info,"Comment_Details":comments}
+        y= mongoinsertion(details)
+        st.success(y)
 elif operation0 == "Migrate Data From MongoDB to MySql":
      s = mongo_connection()
      m,t = sql_connection()
@@ -414,16 +432,23 @@ elif operation0 == "List of Channels Stored in Mongo":
      st.table(y)     
 elif operation0 == "Channel Details":
         s= Youtube_connect(keys)
-        t= Youtube(s)
-        st.dataframe(t["Channel_Details"])        
+        t= channel_info(channel_id,s)
+        st.session_state['Channel'] = t
+        st.table({"Channel Details" :t})        
 elif operation0 == "Video Details":
         s= Youtube_connect(keys)
-        t= Youtube(s)
-        st.dataframe(t["Video_Details"])
+        t= video_Id(channel_id,s)
+        m = video_info(t,s,channel_id)
+        st.session_state['Video_info'] = m
+        st.success(f"Details of {len(m)} Videos Extracted")
+        st.dataframe(m)
 elif operation0 == "Comment Details":
         s= Youtube_connect(keys)
-        t= Youtube(s)
-        st.dataframe(t["Comment_Details"])
+        t= video_Id(channel_id,s)
+        m= Comment_Info(t,s,channel_id)
+        st.session_state['comments'] = m
+        st.success(f"{len(m)} Comment Details Extracted")
+        st.dataframe(m)
 elif operation0 == "Store Data in Mysql Using Channel Name":
         u = st.text_input("Paste the channel Name ")
         if u:
@@ -475,7 +500,7 @@ elif operation0 == "Queries":
                                          "What is the total number of views for each channel, and what are their corresponding channel names?",
                                          "What are the names of all the channels that have published videos in the year 2022?",
                                          "Which videos have the highest number of comments, and what are their corresponding channel names?",
-                                         "What is the average duration of all videos in each channel and what are their corresponding channel names?"
+                                         "What is the average duration of all videos in each channel and what are their corresponding channel names?" 
                                          ]
                                          )
      m,t = sql_connection()
@@ -539,7 +564,6 @@ elif operation0 == "Queries":
         y = m.fetchall()
         df = pd.DataFrame(y,columns=["Channel Name","Avg Watchtime"])
         st.write(df)
-
     
     
      
@@ -556,6 +580,7 @@ elif operation0 == "Queries":
           
      
      
+
 
 
 
