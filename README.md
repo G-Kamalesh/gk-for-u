@@ -87,3 +87,5 @@ c) **Visualization**
     **8.**Queries** - Upon selecting this option it will show a new drop down box which has multiple question. select those question and the data will be fetched accordingly from the 
                       MySql database.
 
+
+Project Demo Video:https://www.linkedin.com/posts/g-kamaleashwar-28a2802ba_python-dataabrcollection-dataabranalysis-activity-7184522557050482689-mFJn?utm_source=share&utm_medium=member_desktop
